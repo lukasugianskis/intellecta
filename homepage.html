@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+<link rel="icon" href="webicon.svg" type="image/svg">
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login / Registration</title>
@@ -13,6 +16,7 @@ body {
     display:flex;
     justify-content:center;
     align-items:center;
+    position:relative;
 }
 .container {
     background:white;
@@ -47,6 +51,20 @@ button[type="submit"] {
     width:100%;padding:12px;background:#667eea;color:white;border:none;border-radius:5px;font-size:16px;font-weight:bold;cursor:pointer;transition:background 0.3s;
 }
 button[type="submit"]:hover {background:#764ba2;}
+#logoutBtn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px 15px;
+    background: #ff4b5c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    display: none;
+}
+#logoutBtn:hover {background:#ff1f3a;}
 </style>
 </head>
 <body>
@@ -89,9 +107,11 @@ button[type="submit"]:hover {background:#764ba2;}
     </form>
 </div>
 
+<button id="logoutBtn" onclick="handleLogout()">Logout</button>
+
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
 import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
 
 // Firebase config
@@ -109,10 +129,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const logoutBtn = document.getElementById('logoutBtn');
 
-// Check if user is logged in
+// Check auth state
 onAuthStateChanged(auth, (user) => {
-    if(user) window.location.href = 'index.html';
+    if(user){
+        logoutBtn.style.display = 'block'; // show logout
+    } else {
+        logoutBtn.style.display = 'none'; // hide logout
+    }
 });
 
 // Switch tab
@@ -130,6 +155,7 @@ async function handleLogin(e){
     const password = document.getElementById('loginPassword').value;
     try{
         await signInWithEmailAndPassword(auth,email,password);
+        logoutBtn.style.display = 'block';
         window.location.href='index.html';
     }catch(err){
         alert('Login failed: '+err.message);
@@ -151,15 +177,29 @@ async function handleRegister(e){
             email: email,
             createdAt: new Date()
         });
+        logoutBtn.style.display = 'block';
         window.location.href='index.html';
     }catch(err){
         alert('Registration failed: '+err.message);
     }
 }
 
+// Logout
+async function handleLogout(){
+    try{
+        await signOut(auth);
+        logoutBtn.style.display='none';
+        alert('Logged out successfully!');
+        window.location.href='login.html'; // redirect to login page
+    }catch(err){
+        alert('Logout failed: '+err.message);
+    }
+}
+
 window.switchTab = switchTab;
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
+window.handleLogout = handleLogout;
 </script>
 </body>
 </html>
